@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
 
 const JobDescriptionUpload = ({ onJobDescriptionUploaded }) => {
-  const [jobDescription, setJobDescription] = useState('');
+  const [error, setError] = useState('');
 
-  const handleTextChange = (e) => {
-    const newText = e.target.value;
-    setJobDescription(newText);
-    onJobDescriptionUploaded(newText);  
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile && selectedFile.type === 'text/plain') {
+      onJobDescriptionUploaded(selectedFile);
+      setError('');
+    } else {
+      setError('Please upload a valid .txt file.');
+    }
   };
 
   return (
     <div>
       <h2>Enter Job Description</h2>
-      <textarea
-        value={jobDescription}
-        onChange={handleTextChange}
-        placeholder="Paste job description text here"
-        rows="10"
-        cols="50"
-      />
+      <input type="file" accept=".txt" onChange={handleFileChange} />
+      {error && <p className="error">{error}</p>}
     </div>
   );
 };
