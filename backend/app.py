@@ -1,62 +1,91 @@
 from flask import Flask, request, jsonify
+from flask_bcrypt import Bcrypt
 from flask_cors import CORS
-from file_parser import extract_text_from_docx, extract_text_from_pdf
-from similarity import calculate_similarity
-from feedback import generate_feedback
-import os
+from pymongo import MongoClient
+import jwt
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
+app.secret_key = 'fd481ed6555e791ab9a4e49c248e8374574e7fd294965dd2f5c780638ba56180' 
+bcrypt = Bcrypt(app)
+CORS(app)
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:3001"}})
+# MongoDB setup
+MONGO_URI = "mongodb://localhost:27017/"  # Replace with your MongoDB URI
+client = MongoClient(MONGO_URI)
+db = client['resume_analyzer']  # Replace with your database name
+users_collection = db['users']
 
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    email = data.get('email')
+    username = data.get('username')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    password = data.get('password')
+    role = data.get('role')  # New field: 'recruiter' or 'job_seeker'
 
-@app.route('/')
-def home():
-    return 'Welcome to the Resume Analyzer!'
+    # Validate required fields
+    if not email or not username or not first_name or not last_name or not password or not role:
+        return jsonify({"error": "All fields are required, including role"}), 400
 
+    # Validate role
+    if role not in ['recruiter', 'job_seeker']:
+        return jsonify({"error": "Invalid role. Must be 'recruiter' or 'job_seeker'"}), 400
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    print("Request files:", request.files)  # Debugging line to see the incoming files
+    # Check if email or username already exists
+    if users_collection.find_one({"email": email}):
+        return jsonify({"error": "Email already exists"}), 400
+    if users_collection.find_one({"username": username}):
+        return jsonify({"error": "Username already exists"}), 400
 
-    resume_file = request.files.get('resume')
-    job_description_file = request.files.get('job_description')
+    # Hash the password
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    if resume_file is None:
-        return "No resume file provided. Please ensure you are using the correct key 'resume'.", 400
-    if job_description_file is None:
-        return "No job description file provided. Please ensure you are using the correct key 'job_description'.", 400
-
-    # Extract text from uploaded files based on file type
-    if resume_file.filename.endswith('.pdf'):
-        resume_text = extract_text_from_pdf(resume_file)
-    elif resume_file.filename.endswith('.docx'):
-        resume_text = extract_text_from_docx(resume_file)
-    else:
-        return "Invalid resume file format. Please upload a .pdf or .docx file.", 400
-
-    if job_description_file.filename.endswith('.txt'):
-        job_description_text = job_description_file.read().decode('utf-8').strip()
-    else:
-        return "Invalid job description file format. Please upload a .txt file.", 400
-
-    # Calculate similarity
-    match_percentage = calculate_similarity(resume_text, job_description_text)
-
-    # Generate feedback
-    feedback = generate_feedback(resume_text, job_description_text)
-
-    print({
-        "match_percentage": match_percentage,
-        "feedback": feedback
+    # Save user to database
+    users_collection.insert_one({
+        "email": email,
+        "username": username,
+        "first_name": first_name,
+        "last_name": last_name,
+        "password": hashed_password,
+        "role": role,
+        "created_at": datetime.utcnow()
     })
 
-    return jsonify({
-        "match_percentage": match_percentage,
-        "feedback": feedback
-    })
+    return jsonify({"message": "User registered successfully!"}), 201
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    role = data.get('role')  # New field: 'recruiter' or 'job_seeker'
+
+    # Validate required fields
+    if not username or not password or not role:
+        return jsonify({"error": "Both username, password, and role are required"}), 400
+
+    # Validate role
+    if role not in ['recruiter', 'job_seeker']:
+        return jsonify({"error": "Invalid role. Must be 'recruiter' or 'job_seeker'"}), 400
+
+    # Find user by username and role
+    user = users_collection.find_one({"username": username, "role": role})
+    if not user or not bcrypt.check_password_hash(user['password'], password):
+        return jsonify({"error": "Invalid username, password, or role"}), 401
+
+    # Generate JWT token
+    token = jwt.encode({
+        "username": username,
+        "role": role,
+        "exp": datetime.utcnow() + timedelta(hours=1)
+    }, app.secret_key, algorithm="HS256")
+
+    return jsonify({"message": "Login successful!", "token": token}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
