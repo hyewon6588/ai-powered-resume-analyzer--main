@@ -48,26 +48,50 @@ function App() {
     formData.append('resume', resumeContent);
     formData.append('job_description', jobDescriptionContent);
 
+    const token = localStorage.getItem('token');
+
     try {
-      const response = await fetch('http://127.0.0.1:5000/upload', {
+      const uploadResponse = await fetch('http://127.0.0.1:5000/upload', {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        setFeedback(result.feedback || []);
-        setMatchPercentage(result.match_percentage || 0);
+      if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.text();
+        setError(uploadError || 'Failed to upload files.');
+        return;
+      }
+  
+      const uploadResult = await uploadResponse.json();
+  
+      // Step 2: Analyze uploaded files
+      const analyzeResponse = await fetch('http://127.0.0.1:5000/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          resume_path: uploadResult.resume_path,
+          job_description_path: uploadResult.job_description_path,
+        }),
+      });
+  
+      if (analyzeResponse.ok) {
+        const analyzeResult = await analyzeResponse.json();
+        setFeedback(analyzeResult.feedback || []);
+        setMatchPercentage(analyzeResult.match_percentage || 0);
         setError('');
-        setTimeout(() => {
-          navigate('/feedback');
-        }, 100);
+        navigate('/feedback');
       } else {
-        const errorText = await response.text();
-        setError(errorText || 'Failed to analyze files.');
+        const analyzeError = await analyzeResponse.text();
+        setError(analyzeError || 'Failed to analyze files.');
       }
     } catch (err) {
-      console.error('Error analyzing files:', err);
+      console.error('Error during analysis:', err);
       setError('An error occurred while analyzing files.');
     }
   };

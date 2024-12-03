@@ -5,21 +5,18 @@ const JobDescriptionUpload = ({ onJobDescriptionUploaded }) => {
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      // Check if the uploaded file is a valid .docx file
-      if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        onJobDescriptionUploaded(selectedFile); // Pass the file to the parent component
-        setError('');
-      } else {
-        setError('Please upload a valid .docx file.');
-      }
+    if (selectedFile && selectedFile.type === 'text/plain') {
+      onJobDescriptionUploaded(selectedFile);
+      setError('');
+    } else {
+      setError('Please upload a valid .txt file.');
     }
   };
 
   return (
     <div>
       <h2>Upload Job Description</h2>
-      <input type="file" accept=".docx" onChange={handleFileChange} />
+      <input type="file" accept=".txt" onChange={handleFileChange} />
       {error && <p className="error">{error}</p>}
     </div>
   );
