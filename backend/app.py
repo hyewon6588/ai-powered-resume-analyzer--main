@@ -208,7 +208,7 @@ def generate_cover_letter():
         return jsonify({"error": "Resume path and job description path are required"}), 400
 
     try:
-        # Extract text from resume
+        # Extract text from the resume
         if resume_path.endswith('.pdf'):
             resume_text = extract_text_from_pdf(resume_path)
         elif resume_path.endswith('.docx'):
@@ -216,7 +216,7 @@ def generate_cover_letter():
         else:
             return jsonify({"error": "Invalid resume file type"}), 400
 
-        # Extract text from job description
+        # Extract text from the job description
         if job_description_path.endswith('.txt'):
             with open(job_description_path, 'r', encoding='utf-8', errors='replace') as file:
                 job_description_text = file.read()
@@ -227,25 +227,49 @@ def generate_cover_letter():
         else:
             return jsonify({"error": "Invalid job description file type"}), 400
 
-        # Generate cover letter
+        # Extract skills from the resume and job description
+        resume_skills = extract_skills(resume_text)
+        job_description_skills = extract_skills(job_description_text)
+
+        # Match the top skills between the resume and the job description
+        matching_skills = list(set(resume_skills) & set(job_description_skills))
+        if not matching_skills:
+            matching_skills = ["your unique skills and experiences"]  # Fallback text
+
+        # Generate the cover letter
         cover_letter = f"""
         Dear Hiring Manager,
 
-        I am excited to apply for the position as described in your job posting. With my skills in {', '.join(resume_text.split()[:5])}, I am confident in my ability to contribute to your team's success.
+        I am excited to apply for the position as described in your job posting. With my expertise in {', '.join(matching_skills[:5])}, 
+        I am confident in my ability to contribute to your team's success.
 
-        The job description mentions {', '.join(job_description_text.split()[:5])}, and I believe my expertise aligns perfectly with these requirements.
+        The job description highlights requirements such as {', '.join(job_description_skills[:5])}. 
+        My professional experience and skillset align perfectly with these needs.
 
-        Thank you for considering my application. I look forward to the opportunity to discuss my qualifications further.
+        Thank you for considering my application. I would love the opportunity to discuss how my skills and experiences align with your requirements.
 
         Best regards,
         [Your Name]
         """
 
         return jsonify({"cover_letter": cover_letter}), 200
+
     except FileNotFoundError as e:
         return jsonify({"error": f"File not found: {str(e)}"}), 404
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+# Helper function to extract skills
+def extract_skills(text):
+    # Sample keywords (can be expanded or loaded from an external source)
+    skills = [
+        "Python", "Flask", "Django", "SQL", "JavaScript", "React", "Node.js",
+        "Machine Learning", "Data Analysis", "AWS", "Azure", "Docker", "Kubernetes",
+        "Communication", "Leadership", "Problem-Solving", "Critical Thinking"
+    ]
+    text = text.lower()
+    extracted_skills = [skill for skill in skills if skill.lower() in text]
+    return extracted_skills
 
 @app.route('/bulk_analyze', methods=['POST'])
 @role_required('recruiter')
