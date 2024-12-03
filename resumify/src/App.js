@@ -6,6 +6,7 @@ import Login from './components/Login';
 import ResumeUpload from './components/ResumeUpload';
 import JobDescriptionUpload from './components/JobDescriptionUpload';
 import Feedback from './components/Feedback';
+import Home from './components/Home';
 import './App.css';
 import './style.css';
 
@@ -15,8 +16,10 @@ function App() {
   const [feedback, setFeedback] = useState([]);
   const [matchPercentage, setMatchPercentage] = useState(0);
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [error, setError] = useState('');
   const [activePage, setActivePage] = useState('home'); // This will control the main content
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   const handleResumeUploaded = (content) => {
@@ -26,6 +29,14 @@ function App() {
   const handleJobDescriptionUploaded = (file) => {
     setJobDescriptionContent(file);
   };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserName('');
+    setUserRole('');
+    navigate('/');
+  };
+
 
   const analyzeFeedback = async () => {
     if (!resumeContent || !jobDescriptionContent) {
@@ -76,115 +87,31 @@ function App() {
         <div className="button-group">
           <Link to="/" onClick={() => setActivePage('home')}><button>Home</button></Link>
           <Link to="/register-jobseeker" onClick={() => setActivePage('register-jobseeker')}><button>Register</button></Link>
-          <Link to="/login" onClick={() => setActivePage('login')}><button>Login</button></Link>
+          {isLoggedIn ? (
+            <button onClick={handleLogout}>Logout</button>
+          ) : (
+            <Link to="/login"><button>Login</button></Link>
+          )}
         </div>
       </header>
 
-      {/* Main Content (Only the Home page will be displayed when navigating) */}
-      <main>
-        {activePage === 'home' && (
-          <>
-            {/* Hero Section */}
-            <header className="hero">
-              <div className="container">
-                <h1>Empower Your Career with Intelligent Insights</h1>
-                <p>Upload your resume, analyze keywords, and get personalized job matches with AI-powered analysis.</p>
-              </div>
-            </header>
-
-            {/* How It Works Section */}
-            <section id="how-it-works" className="section">
-              <div className="container">
-                <h2>How It Works</h2>
-                <div className="steps">
-                  <div className="step">
-                    <img src="i1.svg" alt="Step 1" />
-                    <h3>Upload Resume</h3>
-                    <p>Upload your resume for analysis in just one click.</p>
-                  </div>
-                  <div className="step">
-                    <img src="i2.webp" alt="Step 2" />
-                    <h3>Analyze Keywords</h3>
-                    <p>Our AI scans your resume for relevant keywords and skills.</p>
-                  </div>
-                  <div className="step">
-                    <img src="i3.jpg" alt="Step 3" />
-                    <h3>Get Feedback</h3>
-                    <p>Receive actionable insights to optimize your resume.</p>
-                  </div>
-                  <div className="step">
-                    <img src="i4.png" alt="Step 4" />
-                    <h3>Match with Jobs</h3>
-                    <p>Find personalized job matches based on your skills.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Features Section */}
-            <section id="features" className="section">
-              <div className="container">
-                <h2>Features</h2>
-                <div className="features-grid">
-                  <div className="feature">
-                    <h3>AI-Powered Analysis</h3>
-                    <p>Leverage cutting-edge AI to optimize your resume.</p>
-                  </div>
-                  <div className="feature">
-                    <h3>Keyword Optimization</h3>
-                    <p>Ensure your resume passes applicant tracking systems.</p>
-                  </div>
-                  <div className="feature">
-                    <h3>Job Matching</h3>
-                    <p>Find the best job opportunities tailored for you.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Testimonials Section */}
-            <section id="testimonials" className="section">
-              <div className="container">
-                <h2>What Our Users Say</h2>
-                <div className="testimonials">
-                  <div className="testimonial">
-                  <img src="t1.jpeg" alt="testimonial 1" />
-                    <p>"Resumify helped me land my dream job! The feedback was spot on."</p>
-                    <h4>- John D.</h4>
-                  </div>
-                  <div className="testimonial">
-                  <img src="t4.webp" alt="testimonial 2" />
-                    <p>"I love how easy it was to optimize my resume. Highly recommend!"</p>
-                    <h4>- Sarah K.</h4>
-                  </div>
-                  <div className="testimonial">
-                  <img src="t3.webp" alt="testimonial 3" />
-                    <p>"The AI analysis saved me hours of guesswork. Fantastic tool!"</p>
-                    <h4>- Alex P.</h4>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Footer */}
-            <footer id="contact" className="footer">
-              <div className="container">
-                <p>&copy; 2024 Resumify. All Rights Reserved.</p>
-                <ul className="footer-links">
-                  <li><a href="#">Privacy Policy</a></li>
-                  <li><a href="#">Terms of Service</a></li>
-                  <li><a href="#">Contact Us</a></li>
-                </ul>
-              </div>
-            </footer>
-          </>
-        )}
+      
 
         {/* Login and Register Components */}
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/register-jobseeker" element={<RegisterJobseeker setUserName={setUserName} />} />
           <Route path="/register-recruiter" element={<RegisterRecruiter />} />
-          <Route path="/login" element={<Login setUserName={setUserName} />} />
+          <Route
+          path="/login"
+          element={
+            <Login
+              setUserName={setUserName}
+              setUserRole={setUserRole}
+              onLogin={() => setIsLoggedIn(true)} // 로그인 시 상태 업데이트
+            />
+          }
+        />
           <Route path="/upload" element={
             <div>
               <ResumeUpload onResumeUploaded={handleResumeUploaded} />
@@ -196,7 +123,7 @@ function App() {
 
           <Route path="/feedback" element={<Feedback feedback={feedback} matchPercentage={matchPercentage} />} />
         </Routes>
-      </main>
+      {/* </main> */}
     </div>
   );
 }

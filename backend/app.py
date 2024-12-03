@@ -15,7 +15,8 @@ import chardet
 app = Flask(__name__)
 app.secret_key = 'fd481ed6555e791ab9a4e49c248e8374574e7fd294965dd2f5c780638ba56180'
 bcrypt = Bcrypt(app)
-CORS(app)
+# CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the folder if it doesn't exist
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
