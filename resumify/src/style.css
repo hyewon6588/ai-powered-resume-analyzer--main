@@ -1,0 +1,185 @@
+html, body {
+    margin: 0; /* Remove margin */
+    padding: 0; /* Remove padding */
+    width: 100%; /* Ensure full width */
+    height: 100%; /* Ensure full height */
+    box-sizing: border-box; /* Include padding and border in width/height calculations */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #333;
+    color: #fff;
+    padding: 20px; /* Add padding to navbar */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .logo {
+    width: 70px;
+    margin-right: 10px;
+}
+
+.navbar .company-name {
+    font-size: 2rem;
+}
+
+.navbar .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+
+.navbar .nav-links a {
+    text-decoration: none;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+}
+
+.navbar .btn-primary {
+    background-color: #f39c12;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, #00264d, #0066cc);
+    color: #fff;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.hero .cta-buttons a {
+    margin: 1rem;
+    padding: 1rem 2rem;
+    text-decoration: none;
+    color: #fff;
+    border-radius: 5px;
+}
+
+.hero .btn-primary {
+    background-color: #f39c12;
+}
+
+.hero .btn-secondary {
+    background-color: #0066cc;
+}
+
+/* Sections */
+.section {
+    padding: 2rem 1rem;
+}
+
+.steps, .features-grid, .testimonials {
+    display: flex;
+    gap: 2rem;
+}
+
+.steps .step, .features-grid .feature, .testimonials .testimonial {
+    flex: 1;
+    text-align: center;
+}
+
+/* Set uniform image sizes */
+img {
+    width: 100%;
+    max-width: 200px; /* Adjust to the desired max width */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover; /* Ensure the image covers the area uniformly */
+}
+
+/* Testimonial Image Specific Styling */
+.testimonials .testimonial img {
+    border-radius: 50%; /* Circular images */
+    width: 120px; /* Consistent width for testimonial images */
+    height: 120px; /* Consistent height for testimonial images */
+    object-fit: cover; /* Ensures the image maintains aspect ratio */
+    margin-bottom: 10px; /* Adds spacing below images */
+}
+
+/* Button Styling */
+.button-group button {
+    margin: 0 10px;
+    padding: 20px;
+    cursor: pointer;
+    background-color: #444;
+    border: none;
+    color: white;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+/* Input and Textarea Styling */
+input[type="file"], textarea {
+    padding: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 400px;
+}
+
+button {
+    padding: 10px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+textarea {
+    resize: none;
+}
+
+/* Feedback Container */
+.feedback-container {
+    margin-top: 20px;
+}
+
+.feedback-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.feedback-container li {
+    margin-bottom: 10px;
+}
+
+/* Footer Styling */
+.footer {
+    background-color: #333;
+    color: white;
+    padding: 20px; /* Add padding to footer */
+    text-align: center;
+}
+
+.footer .footer-links {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+}
+
+.footer .footer-links a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.footer .footer-links a:hover {
+    color: #f39c12;
+}
