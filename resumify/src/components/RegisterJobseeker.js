@@ -8,6 +8,7 @@ function RegisterJobseeker({ setUserName }) {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState('job_seeker');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -25,7 +26,7 @@ function RegisterJobseeker({ setUserName }) {
           password,
           first_name: firstName,
           last_name: lastName,
-          role: 'job_seeker', // Role is hardcoded for Job Seeker registration
+          role, // Role is hardcoded for Job Seeker registration
         }),
       });
 
@@ -46,9 +47,13 @@ function RegisterJobseeker({ setUserName }) {
     }
   };
 
+  const handleRoleChangeToRecruiter = () => {
+    setRole('recruiter'); // Change role to 'recruiter'
+  };
+
   return (
     <div className="register-form">
-      <h2>Register as Job Seeker</h2>
+      <h2>Register as {role === 'job_seeker' ? 'Job Seeker' : 'Recruiter'}</h2>
       <form onSubmit={handleSubmit}>
       <label>
           First Name:
@@ -95,11 +100,14 @@ function RegisterJobseeker({ setUserName }) {
             required
           />
         </label>
-        <button type="submit">Register</button>
+        <button type="submit">Register as {role === 'job_seeker' ? 'Job Seeker' : 'Recruiter'}</button>
       </form>
-      <Link to="/register-recruiter">
-        <button className="switch-btn">Register as Recruiter</button>
-      </Link>
+      <button
+        className="switch-btn"
+        onClick={handleRoleChangeToRecruiter}
+      >
+        Switch to Recruiter
+      </button>
     </div>
   );
 }
