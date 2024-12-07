@@ -6,6 +6,7 @@ import Login from './components/Login';
 import ResumeUpload from './components/ResumeUpload';
 import JobDescriptionUpload from './components/JobDescriptionUpload';
 import Feedback from './components/Feedback';
+import GenerateCoverLetter from './components/GenerateCoverLetter';
 import Home from './components/Home';
 import './App.css';
 import './style.css';
@@ -110,11 +111,35 @@ function App() {
         </div>
         <div className="button-group">
           <Link to="/" onClick={() => setActivePage('home')}><button>Home</button></Link>
-          <Link to="/register-jobseeker" onClick={() => setActivePage('register-jobseeker')}><button>Register</button></Link>
-          {isLoggedIn ? (
+          {isLoggedIn && userRole === 'job_seeker' && (
+            <>
+              <Link to="/upload" onClick={() => setActivePage('analyze-resume')}>
+                <button>Analyze Resume</button>
+              </Link>
+              <Link to="/generate-cover-letter" onClick={() => setActivePage('generate-cover-letter')}>
+                <button>Generate Cover Letter</button>
+              </Link>
+            </>
+          )}
+          {isLoggedIn && userRole === 'recruiter' && (
+            <>
+              <Link to="/bulk-analyze" onClick={() => setActivePage('bulk-analyze')}>
+                <button>Bulk Analyze</button>
+              </Link>
+            </>
+          )}
+          {!isLoggedIn && (
+            <>
+              <Link to="/register-jobseeker" onClick={() => setActivePage('register-jobseeker')}>
+                <button>Register</button>
+              </Link>
+              <Link to="/login">
+                <button>Login</button>
+              </Link>
+            </>
+          )}
+          {isLoggedIn && (
             <button onClick={handleLogout}>Logout</button>
-          ) : (
-            <Link to="/login"><button>Login</button></Link>
           )}
         </div>
       </header>
@@ -144,8 +169,8 @@ function App() {
               {error && <p className="error">{error}</p>}
             </div>
           } />
-
           <Route path="/feedback" element={<Feedback feedback={feedback} matchPercentage={matchPercentage} />} />
+          <Route path="/generate-cover-letter" element={<GenerateCoverLetter />} />
         </Routes>
       {/* </main> */}
     </div>
