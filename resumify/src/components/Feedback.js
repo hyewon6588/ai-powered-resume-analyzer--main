@@ -1,11 +1,22 @@
-import React, { useEffect } from 'react';
+import React, {useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Feedback = ({ feedback, matchPercentage}) => {
-  
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('userRole');
+  const navigate = useNavigate();
+
   useEffect(() => {
-    console.log('Feedback on Mount:', feedback);
-    console.log('Match Percentage on Mount:', matchPercentage);
-  }, [feedback, matchPercentage]);
+    if (!Boolean(token) || role != 'job_seeker') {
+      alert('Access Denied: Only job seekers can access this page.');
+      navigate('/'); // Redirect to home
+    }
+  }, [token, role, navigate]);
+
+
+  if (!token || role !== 'job_seeker') {
+    return null; // Prevent rendering if unauthorized
+  };
 
   let message = '';
   let feedbackList = [];

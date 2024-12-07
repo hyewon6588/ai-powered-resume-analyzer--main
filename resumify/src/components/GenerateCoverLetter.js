@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function GenerateCoverLetter() {
+function GenerateCoverLetter({ isLoggedIn }) {
   const [resumeFile, setResumeFile] = useState(null);
   const [jobDescriptionFile, setJobDescriptionFile] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('userRole');
+
+  useEffect(() => {
+    if (!Boolean(token) || role !== 'job_seeker') {
+      alert('Access Denied: Only job seekers can access this page.');
+      navigate('/'); // Redirect to home
+    }
+  }, [isLoggedIn, role, navigate]);
+
+  if (!token || role !== 'job_seeker') {
+    return null; // Prevent rendering if unauthorized
+  }
 
   const handleFileUpload = async () => {
     if (!resumeFile || !jobDescriptionFile) {

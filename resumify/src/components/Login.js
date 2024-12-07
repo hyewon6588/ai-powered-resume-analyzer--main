@@ -29,6 +29,7 @@ function Login({ setUserName,setUserRole,onLogin }) {
       if (response.ok) {
         // Save the token for future authenticated requests
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userRole', role);
 
         // Set the username for the session
         setUserName(username);

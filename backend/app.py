@@ -128,7 +128,7 @@ def login():
         "username": username,
         "role": role,
         "user_id": str(user['_id']),
-        "exp": datetime.utcnow() + timedelta(hours=1)
+        "exp": datetime.utcnow() + timedelta(hours=8)
     }, app.secret_key, algorithm="HS256")
 
     return jsonify({"message": "Login successful!", "token": token}), 200
@@ -315,6 +315,39 @@ def bulk_analyze():
             results.append({"error": f"Resume file not found: {str(e)}"})
 
     return jsonify({"results": results}), 200
+
+@app.route('/upload_multiple', methods=['POST'])
+@role_required('recruiter')
+def upload_multiple():
+    try:
+        if 'job_description' not in request.files:
+            return jsonify({"error": "Job description file is required"}), 400
+
+        if 'resumes' not in request.files:
+            return jsonify({"error": "At least one resume file is required"}), 400
+
+        job_description_file = request.files['job_description']
+        resume_files = request.files.getlist('resumes')
+
+        # Save job description file
+        job_description_path = os.path.join(UPLOAD_FOLDER, secure_filename(job_description_file.filename))
+        job_description_file.save(job_description_path)
+
+        # Save resume files
+        resume_paths = []
+        for resume_file in resume_files:
+            resume_path = os.path.join(UPLOAD_FOLDER, secure_filename(resume_file.filename))
+            resume_file.save(resume_path)
+            resume_paths.append(resume_path.replace("\\", "/"))  # Replace backslashes with slashes
+
+        return jsonify({
+            "job_description_path": job_description_path.replace("\\", "/"),  # Replace backslashes with slashes
+            "resumes": resume_paths
+        }), 200
+    except Exception as e:
+        print('Error in upload_multiple:', str(e))
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
 
 
 if __name__ == '__main__':

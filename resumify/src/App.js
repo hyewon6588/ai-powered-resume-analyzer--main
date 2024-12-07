@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Route, Routes, Link, useNavigate } from 'react-router-dom';
+import RoleBasedRoute from './components/RoleBasedRoute';
 import RegisterJobseeker from './components/RegisterJobseeker';
 import RegisterRecruiter from './components/RegisterRecruiter';
 import Login from './components/Login';
@@ -7,6 +8,7 @@ import ResumeUpload from './components/ResumeUpload';
 import JobDescriptionUpload from './components/JobDescriptionUpload';
 import Feedback from './components/Feedback';
 import GenerateCoverLetter from './components/GenerateCoverLetter';
+import BulkAnalyze from './components/BulkAnalyze';
 import Home from './components/Home';
 import './App.css';
 import './style.css';
@@ -22,6 +24,15 @@ function App() {
   const [activePage, setActivePage] = useState('home'); // This will control the main content
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('userRole');
+
+  useEffect(() => {
+    if (token && role) {
+      setIsLoggedIn(true);
+      setUserRole(role);
+    }
+  }, []);
 
   const handleResumeUploaded = (content) => {
     setResumeContent(content);
@@ -32,11 +43,14 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
     setIsLoggedIn(false);
     setUserName('');
     setUserRole('');
     navigate('/');
   };
+  
 
 
   const analyzeFeedback = async () => {
@@ -59,6 +73,7 @@ function App() {
         },
         body: formData,
       });
+
 
       if (!uploadResponse.ok) {
         const uploadError = await uploadResponse.text();
@@ -86,6 +101,8 @@ function App() {
         setFeedback(analyzeResult.feedback || []);
         setMatchPercentage(analyzeResult.match_percentage || 0);
         setError('');
+        setIsLoggedIn(true);
+        setUserRole('job_seeker');
         navigate('/feedback');
       } else {
         const analyzeError = await analyzeResponse.text();
@@ -111,7 +128,7 @@ function App() {
         </div>
         <div className="button-group">
           <Link to="/" onClick={() => setActivePage('home')}><button>Home</button></Link>
-          {isLoggedIn && userRole === 'job_seeker' && (
+          {token && userRole === 'job_seeker' && (
             <>
               <Link to="/upload" onClick={() => setActivePage('analyze-resume')}>
                 <button>Analyze Resume</button>
@@ -121,14 +138,14 @@ function App() {
               </Link>
             </>
           )}
-          {isLoggedIn && userRole === 'recruiter' && (
+          {token && userRole === 'recruiter' && (
             <>
               <Link to="/bulk-analyze" onClick={() => setActivePage('bulk-analyze')}>
                 <button>Bulk Analyze</button>
               </Link>
             </>
           )}
-          {!isLoggedIn && (
+          {!token && (
             <>
               <Link to="/register-jobseeker" onClick={() => setActivePage('register-jobseeker')}>
                 <button>Register</button>
@@ -138,13 +155,11 @@ function App() {
               </Link>
             </>
           )}
-          {isLoggedIn && (
+          {token && (
             <button onClick={handleLogout}>Logout</button>
           )}
         </div>
       </header>
-
-      
 
         {/* Login and Register Components */}
         <Routes>
@@ -157,20 +172,35 @@ function App() {
             <Login
               setUserName={setUserName}
               setUserRole={setUserRole}
-              onLogin={() => setIsLoggedIn(true)} // 로그인 시 상태 업데이트
+              onLogin={() => setIsLoggedIn(true)}
             />
           }
         />
           <Route path="/upload" element={
-            <div>
-              <ResumeUpload onResumeUploaded={handleResumeUploaded} />
-              <JobDescriptionUpload onJobDescriptionUploaded={handleJobDescriptionUploaded} />
-              <button onClick={analyzeFeedback}>Analyze</button>
-              {error && <p className="error">{error}</p>}
-            </div>
+            <RoleBasedRoute isLoggedIn={token} userRole={userRole} allowedRoles={['job_seeker']}>
+              <div>
+                <ResumeUpload onResumeUploaded={handleResumeUploaded} />
+                <JobDescriptionUpload onJobDescriptionUploaded={handleJobDescriptionUploaded} />
+                <button onClick={analyzeFeedback}>Analyze</button>
+                {error && <p className="error">{error}</p>}
+              </div>
+            </RoleBasedRoute>
           } />
-          <Route path="/feedback" element={<Feedback feedback={feedback} matchPercentage={matchPercentage} />} />
-          <Route path="/generate-cover-letter" element={<GenerateCoverLetter />} />
+          <Route path="/feedback" element={
+            <RoleBasedRoute isLoggedIn={token} userRole={userRole} allowedRoles={['job_seeker']}>
+              <Feedback feedback={feedback} matchPercentage={matchPercentage} />
+            </RoleBasedRoute>
+          } />
+          <Route path="/generate-cover-letter" element={
+            <RoleBasedRoute isLoggedIn={token} userRole={userRole} allowedRoles={['job_seeker']}>
+              <GenerateCoverLetter />
+            </RoleBasedRoute>
+          } />
+          <Route path="/bulk-analyze" element={
+            <RoleBasedRoute isLoggedIn={token} userRole={userRole} allowedRoles={['recruiter']}>
+              <BulkAnalyze />
+            </RoleBasedRoute>
+            } />
         </Routes>
       {/* </main> */}
     </div>
