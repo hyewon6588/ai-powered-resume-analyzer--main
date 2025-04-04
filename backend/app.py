@@ -9,6 +9,7 @@ import os
 from functools import wraps
 from file_parser import extract_text_from_pdf, extract_text_from_docx
 from similarity import calculate_similarity
+from ml_models.classifier import predict_resume_category
 from feedback import generate_feedback
 import chardet
 
@@ -272,6 +273,50 @@ def extract_skills(text):
     extracted_skills = [skill for skill in skills if skill.lower() in text]
     return extracted_skills
 
+# @app.route('/bulk_analyze', methods=['POST'])
+# @role_required('recruiter')
+# def bulk_analyze():
+#     data = request.json
+#     resumes = data.get('resumes')
+#     job_description_path = data.get('job_description_path')
+
+#     if not resumes or not job_description_path:
+#         return jsonify({"error": "Resumes and job description paths are required"}), 400
+
+#     # Handle job description file
+#     try:
+#         if job_description_path.endswith('.txt'):
+#             with open(job_description_path, 'r', encoding='utf-8', errors='replace') as file:
+#                 job_description_text = file.read()
+#         elif job_description_path.endswith('.pdf'):
+#             job_description_text = extract_text_from_pdf(job_description_path)
+#         elif job_description_path.endswith('.docx'):
+#             job_description_text = extract_text_from_docx(job_description_path)
+#         else:
+#             return jsonify({"error": "Invalid job description file type"}), 400
+#     except FileNotFoundError as e:
+#         return jsonify({"error": f"Job description file not found: {str(e)}"}), 404
+
+#     # Handle resumes
+#     results = []
+#     for resume_path in resumes:
+#         try:
+#             if resume_path.endswith('.pdf'):
+#                 resume_text = extract_text_from_pdf(resume_path)
+#             elif resume_path.endswith('.docx'):
+#                 resume_text = extract_text_from_docx(resume_path)
+#             else:
+#                 results.append({"error": f"Invalid resume file type: {resume_path}"})
+#                 continue
+
+#             # Calculate similarity
+#             match_percentage = calculate_similarity(resume_text, job_description_text)
+#             results.append({"resume": resume_path, "match_percentage": match_percentage})
+#         except FileNotFoundError as e:
+#             results.append({"error": f"Resume file not found: {str(e)}"})
+
+#     return jsonify({"results": results}), 200
+
 @app.route('/bulk_analyze', methods=['POST'])
 @role_required('recruiter')
 def bulk_analyze():
@@ -310,7 +355,19 @@ def bulk_analyze():
 
             # Calculate similarity
             match_percentage = calculate_similarity(resume_text, job_description_text)
-            results.append({"resume": resume_path, "match_percentage": match_percentage})
+
+            # Predict category
+            predicted_role = predict_resume_category(resume_text)
+
+            # Simple interview recommendation logic
+            recommend = "Yes" if match_percentage >= 60 else "No"
+
+            results.append({
+                "resume": resume_path,
+                "match_percentage": round(match_percentage, 2),
+                "predicted_role": predicted_role,
+                "interview_recommendation": recommend
+            })
         except FileNotFoundError as e:
             results.append({"error": f"Resume file not found: {str(e)}"})
 
